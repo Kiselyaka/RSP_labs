@@ -1,0 +1,53 @@
+erDiagram
+    USERS ||--o{ SURVEYS : creates
+    SURVEYS ||--|{ QUESTIONS : contains
+    QUESTIONS ||--o{ ANSWER_OPTIONS : offers
+    USERS ||--o{ SURVEY_ATTEMPTS : makes
+    SURVEYS ||--o{ SURVEY_ATTEMPTS : has
+    SURVEY_ATTEMPTS ||--|{ ANSWERS : includes
+    QUESTIONS ||--o{ ANSWERS : receives
+    ANSWER_OPTIONS ||--o{ ANSWERS : selected_in
+
+    USERS {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar display_name
+        timestamptz created_at
+    }
+    SURVEYS {
+        uuid id PK
+        uuid creator_id FK
+        varchar title
+        text description
+        varchar status
+        timestamptz published_at
+        timestamptz created_at
+    }
+    QUESTIONS {
+        uuid id PK
+        uuid survey_id FK
+        text text
+        varchar type
+        int position
+        boolean is_required
+    }
+    ANSWER_OPTIONS {
+        uuid id PK
+        uuid question_id FK
+        text text
+        int position
+    }
+    SURVEY_ATTEMPTS {
+        uuid id PK
+        uuid survey_id FK
+        uuid respondent_id FK
+        timestamptz submitted_at
+    }
+    ANSWERS {
+        uuid id PK
+        uuid attempt_id FK
+        uuid question_id FK
+        uuid option_id FK
+        text text_value
+    }

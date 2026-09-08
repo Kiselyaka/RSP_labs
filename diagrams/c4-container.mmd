@@ -1,0 +1,11 @@
+flowchart LR
+    creator["Создатель опроса\nWeb browser"]
+    respondent["Респондент\nWeb browser"]
+    client["Web client\nИнтерфейс платформы"]
+    api["Backend API\nАутентификация, опросы, ответы, статистика"]
+    db[("PostgreSQL\nПользователи, опросы, ответы")]
+
+    creator --> client
+    respondent --> client
+    client -->|HTTPS / JSON| api
+    api -->|SQL| db
