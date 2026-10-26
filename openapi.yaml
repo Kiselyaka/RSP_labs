@@ -3,9 +3,13 @@ info:
   title: Survey Tool API
   description: REST API для платформы проведения опросов и голосований. Лабораторная работа №2.
   version: 1.0.0
+  license:
+    name: Учебный проект
 servers:
   - url: http://localhost:8080/api/v1
     description: Локальный сервер разработки
+security:
+  - bearerAuth: []
 tags:
   - name: Authentication
     description: Регистрация и вход пользователей
@@ -19,6 +23,7 @@ paths:
       tags: [Authentication]
       summary: Регистрация пользователя
       operationId: register
+      security: []
       requestBody:
         required: true
         content:
@@ -41,6 +46,7 @@ paths:
       tags: [Authentication]
       summary: Вход в систему
       operationId: login
+      security: []
       requestBody:
         required: true
         content:
@@ -63,6 +69,7 @@ paths:
       tags: [Surveys]
       summary: Получить список опросов
       operationId: listSurveys
+      security: []
       parameters:
         - name: status
           in: query
@@ -79,6 +86,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SurveySummary'
+        '400':
+          $ref: '#/components/responses/ValidationError'
     post:
       tags: [Surveys]
       summary: Создать опрос
