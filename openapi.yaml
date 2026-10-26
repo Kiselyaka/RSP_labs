@@ -17,7 +17,24 @@ tags:
     description: Создание и управление опросами
   - name: Attempts
     description: Прохождение опросов
+  - name: Health
+    description: Проверка доступности сервиса
 paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Проверить состояние сервиса
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Сервис доступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /auth/register:
     post:
       tags: [Authentication]
@@ -251,7 +268,33 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailableError:
+      description: Сервис временно недоступен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    HealthResponse:
+      type: object
+      required: [status, app_name, version, environment, uptime_seconds]
+      properties:
+        status:
+          type: string
+          example: pass
+        app_name:
+          type: string
+          example: Survey Tool API
+        version:
+          type: string
+          example: 1.0.0
+        environment:
+          type: string
+          example: development
+        uptime_seconds:
+          type: integer
+          minimum: 0
+          example: 42
     RegisterRequest:
       type: object
       required: [email, password, displayName]

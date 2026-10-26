@@ -1,7 +1,11 @@
 from time import time
+from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import JSONResponse
+import yaml
 
 from internal.config.config import load_config
 from internal.controller.health_controller import create_health_router
@@ -9,13 +13,37 @@ from internal.service.health_service import HealthService
 
 config = load_config()
 health_service = HealthService(config=config, started_at=time())
+openapi_path = Path(__file__).resolve().parents[2] / "openapi.yaml"
 
 app = FastAPI(
     title=config.app_name,
     version=config.app_version,
     description="Базовый REST API платформы Survey Tool.",
+    openapi_url=None,
+    docs_url=None,
 )
 app.include_router(create_health_router(health_service))
+
+
+def load_openapi_schema() -> dict:
+    with openapi_path.open(encoding="utf-8") as openapi_file:
+        return yaml.safe_load(openapi_file)
+
+
+app.openapi = load_openapi_schema
+
+
+@app.get("/openapi.json", include_in_schema=False)
+def get_openapi_schema() -> JSONResponse:
+    return JSONResponse(load_openapi_schema())
+
+
+@app.get("/docs", include_in_schema=False)
+def get_swagger_docs():
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title=f"{config.app_name} - Swagger UI",
+    )
 
 
 if __name__ == "__main__":

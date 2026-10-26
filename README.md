@@ -27,4 +27,7 @@
 2. Создать и активировать окружение: `python -m venv .venv`, затем `.venv\Scripts\activate`.
 3. Установить зависимости: `pip install -r requirements.txt`.
 4. Запустить сервер: `python -m cmd.app.main`.
-5. Открыть `http://localhost:8000/api/v1/health` или Swagger UI: `http://localhost:8000/docs`.
+5. Открыть `http://localhost:8080/api/v1/health` или Swagger UI: `http://localhost:8080/docs`.
+
+Swagger UI использует [openapi.yaml](openapi.yaml) из второй лабораторной и
+показывает полный спроектированный контракт API.
