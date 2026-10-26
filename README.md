@@ -10,3 +10,21 @@
 **Вариант 13:** платформа проведения опросов и голосований (Survey Tool).
 
 Материалы по архитектуре находятся в [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Лабораторная работа №2
+
+В [openapi.yaml](openapi.yaml) находится спецификация REST API Survey Tool
+по стандарту OpenAPI 3.0.
+
+## Лабораторная работа №3
+
+Создан базовый сервер на Python и FastAPI с Layered Architecture,
+конфигурацией из переменных окружения и health-check эндпоинтом.
+
+### Запуск
+
+1. Скопировать `.env.example` в `.env` или использовать подготовленный локальный `.env`.
+2. Создать и активировать окружение: `python -m venv .venv`, затем `.venv\Scripts\activate`.
+3. Установить зависимости: `pip install -r requirements.txt`.
+4. Запустить сервер: `python -m cmd.app.main`.
+5. Открыть `http://localhost:8000/api/v1/health` или Swagger UI: `http://localhost:8000/docs`.
