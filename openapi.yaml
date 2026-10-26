@@ -1,0 +1,470 @@
+openapi: 3.0.3
+info:
+  title: Survey Tool API
+  description: REST API для платформы проведения опросов и голосований. Лабораторная работа №2.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Локальный сервер разработки
+tags:
+  - name: Authentication
+    description: Регистрация и вход пользователей
+  - name: Surveys
+    description: Создание и управление опросами
+  - name: Attempts
+    description: Прохождение опросов
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Регистрация пользователя
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Вход в систему
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Вход выполнен успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /surveys:
+    get:
+      tags: [Surveys]
+      summary: Получить список опросов
+      operationId: listSurveys
+      parameters:
+        - name: status
+          in: query
+          description: Статус опросов для фильтрации
+          required: false
+          schema:
+            $ref: '#/components/schemas/SurveyStatus'
+      responses:
+        '200':
+          description: Список опросов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SurveySummary'
+    post:
+      tags: [Surveys]
+      summary: Создать опрос
+      operationId: createSurvey
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSurveyRequest'
+      responses:
+        '201':
+          description: Опрос создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /surveys/{surveyId}:
+    parameters:
+      - $ref: '#/components/parameters/SurveyId'
+    get:
+      tags: [Surveys]
+      summary: Получить опрос по идентификатору
+      operationId: getSurvey
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Опрос найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    patch:
+      tags: [Surveys]
+      summary: Изменить собственный черновик опроса
+      operationId: updateSurvey
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSurveyRequest'
+      responses:
+        '200':
+          description: Опрос обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Surveys]
+      summary: Удалить собственный черновик опроса
+      operationId: deleteSurvey
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Опрос удалён
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /surveys/{surveyId}/attempts:
+    parameters:
+      - $ref: '#/components/parameters/SurveyId'
+    post:
+      tags: [Attempts]
+      summary: Отправить ответы на опрос
+      operationId: submitAttempt
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAttemptRequest'
+      responses:
+        '201':
+          description: Ответы приняты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttemptResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    SurveyId:
+      name: surveyId
+      in: path
+      required: true
+      description: UUID опроса
+      schema:
+        type: string
+        format: uuid
+  responses:
+    ValidationError:
+      description: Ошибка валидации входных данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Требуется действительный JWT
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Недостаточно прав для операции
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConflictError:
+      description: Конфликт состояния ресурса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email:
+          type: string
+          format: email
+          example: respondent@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: securePassword123
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Иван Петров
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: respondent@example.com
+        password:
+          type: string
+          format: password
+          example: securePassword123
+    AuthResponse:
+      type: object
+      required: [accessToken, tokenType, user]
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9.example.signature
+        tokenType:
+          type: string
+          example: Bearer
+        user:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      required: [id, email, displayName]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+    SurveyStatus:
+      type: string
+      enum: [draft, published, closed]
+      example: published
+    QuestionType:
+      type: string
+      enum: [single_choice, multiple_choice, text]
+      example: single_choice
+    AnswerOption:
+      type: object
+      required: [text, position]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: Да
+        position:
+          type: integer
+          minimum: 1
+          example: 1
+    QuestionInput:
+      type: object
+      required: [text, type, position, isRequired]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: Пользуетесь ли вы сервисом ежедневно?
+        type:
+          $ref: '#/components/schemas/QuestionType'
+        position:
+          type: integer
+          minimum: 1
+          example: 1
+        isRequired:
+          type: boolean
+          example: true
+        options:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/AnswerOption'
+    CreateSurveyRequest:
+      type: object
+      required: [title, questions]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          example: Оценка сервиса
+        description:
+          type: string
+          maxLength: 2000
+          example: Помогите нам улучшить сервис.
+        questions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/QuestionInput'
+    UpdateSurveyRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/SurveyStatus'
+        questions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/QuestionInput'
+    SurveySummary:
+      type: object
+      required: [id, title, status, questionCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/SurveyStatus'
+        questionCount:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+    SurveyDetail:
+      allOf:
+        - $ref: '#/components/schemas/SurveySummary'
+        - type: object
+          required: [creatorId, questions]
+          properties:
+            creatorId:
+              type: string
+              format: uuid
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuestionInput'
+    AnswerInput:
+      type: object
+      required: [questionId]
+      properties:
+        questionId:
+          type: string
+          format: uuid
+        optionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        textValue:
+          type: string
+          maxLength: 5000
+    CreateAttemptRequest:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AnswerInput'
+    AttemptResponse:
+      type: object
+      required: [id, surveyId, submittedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        surveyId:
+          type: string
+          format: uuid
+        submittedAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Поле title должно содержать минимум 3 символа.
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-10-26T12:00:00Z'
