@@ -47,4 +47,4 @@ def get_swagger_docs():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=config.http_port)
+    uvicorn.run(app, host=config.app_host, port=config.http_port)

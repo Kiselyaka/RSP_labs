@@ -31,3 +31,21 @@
 
 Swagger UI использует [openapi.yaml](openapi.yaml) из второй лабораторной и
 показывает полный спроектированный контракт API.
+
+## Лабораторная работа №4
+
+Приложение контейнеризировано с помощью Docker. В [.dockerignore](.dockerignore)
+перечислены файлы, которые не должны попадать в контекст сборки, а [Dockerfile](Dockerfile)
+создаёт минимальный образ Python, запускаемый от непривилегированного пользователя.
+
+### Сборка и запуск контейнера
+
+```bash
+docker build -t survey-tool-api:lab4 .
+docker run --name survey-tool-api -d -p 8080:8080 --env-file .env survey-tool-api:lab4
+curl http://localhost:8080/api/v1/health
+```
+
+Просмотреть логи: `docker logs survey-tool-api`.
+
+Остановить и удалить контейнер: `docker stop survey-tool-api` и `docker rm survey-tool-api`.

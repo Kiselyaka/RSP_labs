@@ -8,6 +8,7 @@ class AppConfig:
     app_name: str
     app_version: str
     app_environment: str
+    app_host: str
     http_port: int
 
 
@@ -22,6 +23,7 @@ def load_config() -> AppConfig:
         app_name=os.getenv("APP_NAME", "Survey Tool API"),
         app_version=os.getenv("APP_VERSION", "1.0.0"),
         app_environment=os.getenv("APP_ENV", "development"),
+        app_host=os.getenv("APP_HOST", "0.0.0.0"),
         http_port=http_port,
     )
 
