@@ -1,4 +1,7 @@
-from psycopg import Error
+from collections.abc import Iterator
+from contextlib import contextmanager
+
+from psycopg import Connection, Error
 from psycopg.conninfo import make_conninfo
 from psycopg_pool import ConnectionPool, PoolTimeout
 
@@ -40,6 +43,13 @@ class Postgres:
         if self._pool is not None:
             self._pool.close()
             self._pool = None
+
+    @contextmanager
+    def connection(self) -> Iterator[Connection]:
+        if self._pool is None:
+            raise PoolTimeout("The PostgreSQL pool is closed.")
+        with self._pool.connection() as connection:
+            yield connection
 
     def is_available(self) -> bool:
         if self._pool is None:

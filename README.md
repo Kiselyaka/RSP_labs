@@ -90,3 +90,20 @@ docker compose up -d app
 ```cmd
 docker compose exec db sh -c "psql -U $POSTGRES_USER -d $POSTGRES_DB"
 ```
+
+## Лабораторная работа №6
+
+Репозитории пользователей, опросов и вопросов используют PostgreSQL и пул
+соединений из ЛР №5. Контракты, реализация и ответы на вопросы описаны в
+[ARCHITECTURE.md](ARCHITECTURE.md#лабораторная-работа-6-слой-доступа-к-данным).
+
+Запуск интеграционных тестов из корня проекта в CMD. Команда создаёт отдельный
+проект Compose с собственной базой и применяет миграцию перед тестами.
+
+```cmd
+docker compose -p rsp-lab6-check up -d db
+docker compose -p rsp-lab6-check run --rm migrate
+docker compose -p rsp-lab6-check build app
+docker compose -p rsp-lab6-check run --rm --no-deps -e RUN_POSTGRES_TESTS=1 -v "%CD%\tests:/app/tests:ro" -v "%CD%\requirements-dev.txt:/tmp/requirements-dev.txt:ro" app sh -c "pip -q install --no-cache-dir --target /tmp/test-deps -r /tmp/requirements-dev.txt && PYTHONPATH=/tmp/test-deps python -P tests/run_integration.py"
+docker compose -p rsp-lab6-check down
+```

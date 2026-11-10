@@ -11,6 +11,11 @@ import yaml
 from internal.config.config import load_config, load_database_config
 from internal.controller.health_controller import create_health_router
 from internal.database.postgres import Postgres
+from internal.repository.postgres import (
+    PostgresQuestionRepository,
+    PostgresSurveyRepository,
+    PostgresUserRepository,
+)
 from internal.service.health_service import HealthService
 
 config = load_config()
@@ -23,6 +28,9 @@ openapi_path = Path(__file__).resolve().parents[2] / "openapi.yaml"
 async def lifespan(app: FastAPI):
     try:
         database.open(load_database_config())
+        app.state.users = PostgresUserRepository(database.connection)
+        app.state.surveys = PostgresSurveyRepository(database.connection)
+        app.state.questions = PostgresQuestionRepository(database.connection)
         yield
     finally:
         database.close()
