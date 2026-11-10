@@ -1,12 +1,17 @@
 from time import time
 
 from internal.config.config import AppConfig
+from internal.database.postgres import Postgres
 
 
 class HealthService:
-    def __init__(self, config: AppConfig, started_at: float) -> None:
+    def __init__(self, config: AppConfig, started_at: float, database: Postgres) -> None:
         self._config = config
         self._started_at = started_at
+        self._database = database
+
+    def is_ready(self) -> bool:
+        return self._database.is_available()
 
     def get_status(self) -> dict[str, str | int]:
         return {

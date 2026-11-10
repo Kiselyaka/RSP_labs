@@ -4,12 +4,54 @@ from pathlib import Path
 
 
 @dataclass(frozen=True)
+class DatabaseConfig:
+    host: str
+    port: int
+    user: str
+    password: str
+    name: str
+    max_connections: int
+
+
+@dataclass(frozen=True)
 class AppConfig:
     app_name: str
     app_version: str
     app_environment: str
     app_host: str
     http_port: int
+
+
+def load_database_config() -> DatabaseConfig:
+    return DatabaseConfig(
+        host=_required_env("DB_HOST"),
+        port=_required_int("DB_PORT", maximum=65535),
+        user=_required_env("DB_USER"),
+        password=_required_env("DB_PASSWORD"),
+        name=_required_env("DB_NAME"),
+        max_connections=_required_int("DB_MAX_CONNS"),
+    )
+
+
+def _required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value or not value.strip():
+        raise ValueError(f"{name} is required. Set it in .env or the process environment.")
+    return value
+
+
+def _required_int(name: str, maximum: int | None = None) -> int:
+    value = _required_env(name)
+    message = f"{name} must be a positive integer"
+    if maximum is not None:
+        message += f" no greater than {maximum}"
+    try:
+        number = int(value)
+    except ValueError:
+        raise ValueError(message) from None
+    if number < 1 or (maximum is not None and number > maximum):
+        raise ValueError(message)
+    return number
 
 
 def load_config() -> AppConfig:

@@ -19,6 +19,6 @@ USER appuser
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/api/v1/health')" || exit 1
+  CMD python -c "from os import getenv; from urllib.request import urlopen; urlopen('http://127.0.0.1:' + getenv('HTTP_PORT', '8080') + '/api/v1/health', timeout=2.5)" || exit 1
 
 CMD ["python", "-m", "cmd.app.main"]
