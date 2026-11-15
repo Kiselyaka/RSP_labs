@@ -1,6 +1,7 @@
 # Environment configuration
 .env
-.env.local
+.env.*
+!.env.example
 
 # Dependencies and build output
 node_modules/
@@ -19,3 +20,9 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local files
+.pytest_cache/
+/docker-compose.override.yml
+*.docx
+*.dump
