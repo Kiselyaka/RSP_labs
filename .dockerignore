@@ -9,5 +9,6 @@ __pycache__/
 *.log
 *.docx
 README.md
-ARCHITECTURE.md
-diagrams/
+docs/
+Документы/
+backups/
