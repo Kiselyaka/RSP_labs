@@ -111,6 +111,8 @@ docker compose -p rsp-lab6-check down
 
 ## Лабораторная работа №7
 
+В ветке ЛР 8 формат ошибок ЛР 7 расширен, актуальный контракт описан в [LAB8.md](LAB8.md).
+
 Реализованы сервисы пользователей и опросов, DTO, единая обработка ошибок,
 CRUD пользователей, создание и публикация опросов. Ручные сценарии,
 бизнес-правила и объяснение кода находятся в [LAB7.md](LAB7.md).
@@ -173,3 +175,45 @@ docker compose -p rsp-lab6-demo start app
 Команды `down -v` и `migrate down 1` удаляют данные разными способами.
 Файл копии находится на Windows вне тома PostgreSQL и переживает эти операции.
 Папка backups исключена из Git. Архив также содержит хеши паролей пользователей.
+
+
+## Лабораторная работа №8
+
+Валидация DTO реализована декларативно через Pydantic. Неверные поля
+возвращаются списком в error.details, проверяется связь type и options,
+параметры limit/offset и UUID, запрещены неизвестные поля и неверный JSON.
+Схема, таблица правил и П1–П9 приведены в [LAB8.md](LAB8.md).
+
+Новый формат ошибок:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed.",
+    "details": [{"field": "displayName", "issue": "Minimum length is 2."}],
+    "requestId": "e7f31c2d-3b41-4dd4-8136-1dc0634d48e1",
+    "timestamp": "2026-11-18T12:00:00Z"
+  }
+}
+```
+
+X-Request-ID возвращается во всех ответах и совпадает с error.requestId
+и идентификатором журнала. Неизвестное поле, неверный тип тела и неверный
+JSON дают MALFORMED_JSON; нарушение ограничений DTO — VALIDATION_ERROR;
+отказ бизнес-правила — INVALID_INPUT. Дубликат теперь имеет код CONFLICT.
+При 500 полный текст и стек сохраняются в журнале, клиент получает общее сообщение.
+
+Запуск использует ту же базу ЛР 5–7 и порт 8080:
+
+```cmd
+set "HTTP_PORT=8080"
+docker compose -p rsp-lab6-demo up --build -d --wait
+docker compose -p rsp-lab6-demo run --build --rm unit
+```
+
+Модульные и HTTP-тесты работают без запуска БД. Локальный вариант —
+`python -P tests/run_unit.py` после установки requirements-dev.txt.
+Для проверки 500 при отключённой БД вызывай GET /api/v1/users.
+Health сохраняет 503, как в ЛР 5. Журнал можно прочитать через
+`docker compose -p rsp-lab6-demo logs --tail 30 app`.

@@ -16,3 +16,7 @@ class ErrConflict(RepositoryError):
 
 class ErrInvalidInput(RepositoryError):
     pass
+
+
+class ErrServiceUnavailable(RepositoryError):
+    pass

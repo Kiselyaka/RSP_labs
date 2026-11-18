@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Survey Tool API
-  description: ЛР 7. CRUD пользователей и создание и публикация опросов. Учебный API
-    без аутентификации.
+  description: ЛР 8. Валидация DTO, единые ошибки и X-Request-ID. Учебный API без
+    аутентификации.
   version: 1.0.0
 paths:
   /api/v1/health:
@@ -18,6 +18,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
   /api/v1/users:
     post:
       tags:
@@ -41,30 +71,59 @@ paths:
             Location:
               schema:
                 type: string
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
     get:
       tags:
       - Users
@@ -98,30 +157,60 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserResponse'
                 title: Response List Users Api V1 Users Get
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
   /api/v1/users/{user_id}:
     get:
       tags:
@@ -143,30 +232,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
     put:
       tags:
       - Users
@@ -193,30 +312,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
     delete:
       tags:
       - Users
@@ -233,30 +382,60 @@ paths:
       responses:
         '204':
           description: Successful Response
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
   /api/v1/surveys:
     post:
       tags:
@@ -276,6 +455,11 @@ paths:
             Location:
               schema:
                 type: string
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
           content:
             application/json:
               schema:
@@ -285,25 +469,49 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
   /api/v1/surveys/{survey_id}:
     get:
       tags:
@@ -325,30 +533,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SurveyResponse'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
   /api/v1/surveys/{survey_id}/publish:
     post:
       tags:
@@ -370,30 +608,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SurveyResponse'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '400':
           description: Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '404':
           description: Resource not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '409':
           description: Conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Server-generated request identifier, also present in error.requestId.
+              schema:
+                type: string
+                format: uuid
 components:
   schemas:
     CreateSurveyRequest:
@@ -405,6 +673,7 @@ components:
         title:
           type: string
           maxLength: 200
+          minLength: 3
           title: Title
           examples:
           - Service feedback
@@ -431,6 +700,8 @@ components:
         email:
           type: string
           maxLength: 255
+          minLength: 3
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
           title: Email
           examples:
           - student@example.test
@@ -444,6 +715,7 @@ components:
         displayName:
           type: string
           maxLength: 100
+          minLength: 2
           title: Displayname
           examples:
           - Student
@@ -454,7 +726,16 @@ components:
       - password
       - displayName
       title: CreateUserRequest
-    ErrorResponse:
+    Error:
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+      additionalProperties: false
+      type: object
+      required:
+      - error
+      title: Error
+    ErrorBody:
       properties:
         code:
           type: string
@@ -462,6 +743,15 @@ components:
         message:
           type: string
           title: Message
+        details:
+          items:
+            $ref: '#/components/schemas/FieldIssue'
+          type: array
+          title: Details
+        requestId:
+          type: string
+          format: uuid
+          title: Requestid
         timestamp:
           type: string
           format: date-time
@@ -471,8 +761,23 @@ components:
       required:
       - code
       - message
+      - requestId
       - timestamp
-      title: ErrorResponse
+      title: ErrorBody
+    FieldIssue:
+      properties:
+        field:
+          type: string
+          title: Field
+        issue:
+          type: string
+          title: Issue
+      additionalProperties: false
+      type: object
+      required:
+      - field
+      - issue
+      title: FieldIssue
     HTTPValidationError:
       properties:
         detail:
@@ -512,9 +817,12 @@ components:
         text:
           type: string
           maxLength: 500
+          minLength: 1
           title: Text
         position:
           type: integer
+          maximum: 2147483647.0
+          minimum: 1.0
           title: Position
       additionalProperties: false
       type: object
@@ -527,9 +835,12 @@ components:
         text:
           type: string
           maxLength: 500
+          minLength: 1
           title: Text
         position:
           type: integer
+          maximum: 2147483647.0
+          minimum: 1.0
           title: Position
         id:
           type: string
@@ -547,6 +858,7 @@ components:
         text:
           type: string
           maxLength: 1000
+          minLength: 1
           title: Text
         type:
           type: string
@@ -557,6 +869,8 @@ components:
           title: Type
         position:
           type: integer
+          maximum: 2147483647.0
+          minimum: 1.0
           title: Position
         isRequired:
           type: boolean
@@ -568,6 +882,8 @@ components:
           type: array
           maxItems: 50
           title: Options
+          description: Must be empty when type is text. Choice questions need two
+            options before publication.
       additionalProperties: false
       type: object
       required:
@@ -673,10 +989,13 @@ components:
         email:
           type: string
           maxLength: 255
+          minLength: 3
+          pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
           title: Email
         displayName:
           type: string
           maxLength: 100
+          minLength: 2
           title: Displayname
       additionalProperties: false
       type: object

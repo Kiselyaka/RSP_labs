@@ -20,7 +20,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'The backup archive could not be read.' }
     docker cp "${dbId}:$containerFile" $backupFile
     if ($LASTEXITCODE -ne 0) { throw 'Could not copy the backup to Windows.' }
-    $checksum = (Get-FileHash -LiteralPath $backupFile -Algorithm SHA256).Hash
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($backupFile)
+    try {
+        $checksum = [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-', '')
+    } finally {
+        $stream.Dispose()
+        $sha256.Dispose()
+    }
     [IO.File]::WriteAllText($backupFile + '.sha256', $checksum, [Text.Encoding]::ASCII)
     Write-Output "Backup saved: $backupFile"
     Write-Output "SHA256: $checksum"

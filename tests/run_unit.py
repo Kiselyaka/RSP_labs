@@ -14,4 +14,5 @@ if __name__ == "__main__":
     raise SystemExit(pytest.main([
         "-v", "-p", "no:cacheprovider", str(root / "tests/test_services.py"),
         str(root / "tests/test_http.py"),
+        str(root / "tests/test_validation.py"),
     ]))

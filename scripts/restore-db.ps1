@@ -7,7 +7,15 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $resolvedBackup = (Resolve-Path -LiteralPath $BackupFile).Path
 if (Test-Path -LiteralPath ($resolvedBackup + '.sha256')) {
     $expectedHash = [IO.File]::ReadAllText($resolvedBackup + '.sha256').Trim()
-    if ((Get-FileHash -LiteralPath $resolvedBackup -Algorithm SHA256).Hash -ne $expectedHash) {
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($resolvedBackup)
+    try {
+        $actualHash = [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-', '')
+    } finally {
+        $stream.Dispose()
+        $sha256.Dispose()
+    }
+    if ($actualHash -ne $expectedHash) {
         throw 'Backup checksum mismatch. Restoration was cancelled.'
     }
 }

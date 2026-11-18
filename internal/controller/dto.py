@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationInfo, field_validator
+from pydantic_core import PydanticCustomError
 
 from internal.domain.models import SurveyDetail, User
 from internal.service.survey_service import OptionDraft, QuestionDraft
@@ -12,15 +13,26 @@ class DTO(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
 
+Email = Annotated[str, StringConstraints(
+    strict=True, strip_whitespace=True, to_lower=True, min_length=3, max_length=255,
+    pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$",
+)]
+DisplayName = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=2, max_length=100)]
+Title = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=3, max_length=200)]
+QuestionText = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=1000)]
+OptionText = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=500)]
+Position = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
+
+
 class CreateUserRequest(DTO):
-    email: str = Field(max_length=255, examples=["student@example.test"])
-    password: str = Field(min_length=8, max_length=128, examples=["DemoPassword123"])
-    display_name: str = Field(alias="displayName", max_length=100, examples=["Student"])
+    email: Email = Field(examples=["student@example.test"])
+    password: str = Field(strict=True, min_length=8, max_length=128, examples=["DemoPassword123"])
+    display_name: DisplayName = Field(alias="displayName", examples=["Student"])
 
 
 class UpdateUserRequest(DTO):
-    email: str = Field(max_length=255)
-    display_name: str = Field(alias="displayName", max_length=100)
+    email: Email
+    display_name: DisplayName = Field(alias="displayName")
 
 
 class UserResponse(DTO):
@@ -36,16 +48,26 @@ class UserResponse(DTO):
 
 
 class OptionInput(DTO):
-    text: str = Field(max_length=500)
-    position: int
+    text: OptionText
+    position: Position
 
 
 class QuestionInput(DTO):
-    text: str = Field(max_length=1000)
+    text: QuestionText
     type: Literal["text", "single_choice", "multiple_choice"]
-    position: int
-    is_required: bool = Field(default=True, alias="isRequired")
-    options: list[OptionInput] = Field(default_factory=list, max_length=50)
+    position: Position
+    is_required: bool = Field(default=True, strict=True, alias="isRequired")
+    options: list[OptionInput] = Field(
+        default_factory=list, max_length=50,
+        description="Must be empty when type is text. Choice questions need two options before publication.",
+    )
+
+    @field_validator("options")
+    @classmethod
+    def options_match_type(cls, options: list[OptionInput], info: ValidationInfo):
+        if info.data.get("type") == "text" and options:
+            raise PydanticCustomError("text_options", "Text questions cannot contain answer options.")
+        return options
 
     def to_domain(self) -> QuestionDraft:
         return QuestionDraft(self.text, self.type, self.position, self.is_required,
@@ -54,8 +76,8 @@ class QuestionInput(DTO):
 
 class CreateSurveyRequest(DTO):
     creator_id: UUID = Field(alias="creatorId")
-    title: str = Field(max_length=200, examples=["Service feedback"])
-    description: str | None = Field(default=None, max_length=2000)
+    title: Title = Field(examples=["Service feedback"])
+    description: str | None = Field(default=None, strict=True, max_length=2000)
     questions: list[QuestionInput] = Field(default_factory=list, max_length=100)
 
 
@@ -95,7 +117,18 @@ class SurveyResponse(DTO):
                    question_count=len(questions), questions=questions)
 
 
-class ErrorResponse(DTO):
+class FieldIssue(DTO):
+    field: str
+    issue: str
+
+
+class ErrorBody(DTO):
     code: str
     message: str
+    details: list[FieldIssue] = Field(default_factory=list)
+    request_id: UUID = Field(alias="requestId")
     timestamp: datetime
+
+
+class Error(DTO):
+    error: ErrorBody

@@ -59,7 +59,9 @@ def test_domain_errors_use_common_response(client, error, status):
     users.get.side_effect = error
     response = http.get(f"/api/v1/users/{uuid4()}")
     assert response.status_code == status
-    assert set(response.json()) == {"code", "message", "timestamp"}
+    assert set(response.json()) == {"error"}
+    assert set(response.json()["error"]) == {"code", "message", "details", "requestId", "timestamp"}
+    assert response.json()["error"]["requestId"] == response.headers["x-request-id"]
 
 
 def test_delete_returns_empty_body(client):

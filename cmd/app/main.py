@@ -8,6 +8,7 @@ from internal.config.config import load_config, load_database_config
 from internal.controller.health_controller import create_health_router
 from internal.controller.errors import register_error_handlers
 from internal.controller.resource_controller import router
+from internal.controller.request_context import RequestContextMiddleware, configure_logging
 from internal.database.postgres import Postgres
 from internal.repository.postgres import (
     PostgresQuestionRepository,
@@ -41,11 +42,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=config.app_name,
     version=config.app_version,
-    description="ЛР 7. CRUD пользователей и создание и публикация опросов. Учебный API без аутентификации.",
+    description="ЛР 8. Валидация DTO, единые ошибки и X-Request-ID. Учебный API без аутентификации.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     lifespan=lifespan,
 )
+app.add_middleware(RequestContextMiddleware)
 app.include_router(create_health_router(health_service))
 app.include_router(router)
 register_error_handlers(app)
@@ -62,6 +64,11 @@ def openapi_schema() -> dict:
             for operation in path.values():
                 if isinstance(operation, dict):
                     operation.get("responses", {}).pop("422", None)
+                    for response in operation.get("responses", {}).values():
+                        response.setdefault("headers", {})["X-Request-ID"] = {
+                            "description": "Server-generated request identifier, also present in error.requestId.",
+                            "schema": {"type": "string", "format": "uuid"},
+                        }
         app.openapi_schema = schema
     return app.openapi_schema
 
@@ -70,4 +77,5 @@ app.openapi = openapi_schema
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=config.app_host, port=config.http_port)
+    configure_logging()
+    uvicorn.run(app, host=config.app_host, port=config.http_port, log_config=None, access_log=False)

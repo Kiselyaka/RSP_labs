@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 
 from internal.controller.dto import (
-    CreateSurveyRequest, CreateUserRequest, ErrorResponse, SurveyResponse,
+    CreateSurveyRequest, CreateUserRequest, Error, SurveyResponse,
     UpdateUserRequest, UserResponse,
 )
 from internal.service.survey_service import SurveyService
@@ -22,7 +22,7 @@ def survey_service(request: Request) -> SurveyService:
 Users = Annotated[UserService, Depends(user_service)]
 Surveys = Annotated[SurveyService, Depends(survey_service)]
 router = APIRouter(prefix="/api/v1", responses={
-    code: {"model": ErrorResponse, "description": description}
+    code: {"model": Error, "description": description}
     for code, description in [(400, "Invalid input"), (404, "Resource not found"),
                               (409, "Conflict"), (500, "Internal error")]
 })
