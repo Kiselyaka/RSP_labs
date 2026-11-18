@@ -29,3 +29,18 @@ class Question(BaseModel):
     type: str
     position: int
     is_required: bool
+
+
+class AnswerOption(BaseModel):
+    id: UUID
+    question_id: UUID
+    text: str
+    position: int
+
+
+class QuestionDetail(Question):
+    options: list[AnswerOption]
+
+
+class SurveyDetail(Survey):
+    questions: list[QuestionDetail]

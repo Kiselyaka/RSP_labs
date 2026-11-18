@@ -1,15 +1,13 @@
 from contextlib import asynccontextmanager
 from time import time
-from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import JSONResponse
-import yaml
 
 from internal.config.config import load_config, load_database_config
 from internal.controller.health_controller import create_health_router
+from internal.controller.errors import register_error_handlers
+from internal.controller.resource_controller import router
 from internal.database.postgres import Postgres
 from internal.repository.postgres import (
     PostgresQuestionRepository,
@@ -17,11 +15,13 @@ from internal.repository.postgres import (
     PostgresUserRepository,
 )
 from internal.service.health_service import HealthService
+from internal.service.user_service import UserService
+from internal.service.survey_service import SurveyService
+from internal.repository.survey_session import session_factory
 
 config = load_config()
 database = Postgres()
 health_service = HealthService(config=config, started_at=time(), database=database)
-openapi_path = Path(__file__).resolve().parents[2] / "openapi.yaml"
 
 
 @asynccontextmanager
@@ -31,6 +31,8 @@ async def lifespan(app: FastAPI):
         app.state.users = PostgresUserRepository(database.connection)
         app.state.surveys = PostgresSurveyRepository(database.connection)
         app.state.questions = PostgresQuestionRepository(database.connection)
+        app.state.user_service = UserService(app.state.users)
+        app.state.survey_service = SurveyService(session_factory(database))
         yield
     finally:
         database.close()
@@ -39,33 +41,32 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=config.app_name,
     version=config.app_version,
-    description="Базовый REST API платформы Survey Tool.",
-    openapi_url=None,
-    docs_url=None,
+    description="ЛР 7. CRUD пользователей и создание и публикация опросов. Учебный API без аутентификации.",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
     lifespan=lifespan,
 )
 app.include_router(create_health_router(health_service))
+app.include_router(router)
+register_error_handlers(app)
 
 
-def load_openapi_schema() -> dict:
-    with openapi_path.open(encoding="utf-8") as openapi_file:
-        return yaml.safe_load(openapi_file)
+def openapi_schema() -> dict:
+    from fastapi.openapi.utils import get_openapi
+
+    if app.openapi_schema is None:
+        schema = get_openapi(title=app.title, version=app.version,
+                             description=app.description, routes=app.routes)
+        # Request validation is intentionally translated to 400 by the common handler.
+        for path in schema["paths"].values():
+            for operation in path.values():
+                if isinstance(operation, dict):
+                    operation.get("responses", {}).pop("422", None)
+        app.openapi_schema = schema
+    return app.openapi_schema
 
 
-app.openapi = load_openapi_schema
-
-
-@app.get("/openapi.json", include_in_schema=False)
-def get_openapi_schema() -> JSONResponse:
-    return JSONResponse(load_openapi_schema())
-
-
-@app.get("/docs", include_in_schema=False)
-def get_swagger_docs():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title=f"{config.app_name} - Swagger UI",
-    )
+app.openapi = openapi_schema
 
 
 if __name__ == "__main__":

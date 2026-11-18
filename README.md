@@ -13,8 +13,9 @@
 
 ## Лабораторная работа №2
 
-В [openapi.yaml](openapi.yaml) находится спецификация REST API Survey Tool
-по стандарту OpenAPI 3.0.
+В ЛР 2 спроектирована спецификация REST API Survey Tool по OpenAPI 3.0.
+В текущей ветке [openapi.yaml](openapi.yaml) синхронизирован с реализованным
+API ЛР 7 и использует OpenAPI 3.1. Исходный контракт сохранён в ветке ЛР 2.
 
 ## Лабораторная работа №3
 
@@ -29,8 +30,8 @@
 4. Запустить сервер: `python -m cmd.app.main`.
 5. Открыть `http://localhost:8080/api/v1/health` или Swagger UI: `http://localhost:8080/docs`.
 
-Swagger UI использует [openapi.yaml](openapi.yaml) из второй лабораторной и
-показывает полный спроектированный контракт API.
+В текущей ветке Swagger UI строится из реализованных маршрутов и DTO.
+Его схема проверяется на совпадение с [openapi.yaml](openapi.yaml).
 
 ## Лабораторная работа №4
 
@@ -41,7 +42,7 @@ Swagger UI использует [openapi.yaml](openapi.yaml) из второй �
 ### Сборка и запуск контейнера
 
 ```bash
-docker build -t survey-tool-api:lab4 .
+docker build --target runtime -t survey-tool-api:lab4 .
 docker run --name survey-tool-api -d -p 8080:8080 --env-file .env survey-tool-api:lab4
 curl http://localhost:8080/api/v1/health
 ```
@@ -107,3 +108,41 @@ docker compose -p rsp-lab6-check build app
 docker compose -p rsp-lab6-check run --rm --no-deps -e RUN_POSTGRES_TESTS=1 -v "%CD%\tests:/app/tests:ro" -v "%CD%\requirements-dev.txt:/tmp/requirements-dev.txt:ro" app sh -c "pip -q install --no-cache-dir --target /tmp/test-deps -r /tmp/requirements-dev.txt && PYTHONPATH=/tmp/test-deps python -P tests/run_integration.py"
 docker compose -p rsp-lab6-check down
 ```
+
+## Лабораторная работа №7
+
+Реализованы сервисы пользователей и опросов, DTO, единая обработка ошибок,
+CRUD пользователей, создание и публикация опросов. Ручные сценарии,
+бизнес-правила и объяснение кода находятся в [LAB7.md](LAB7.md).
+
+Запуск из основной папки репозитория в CMD с существующим `.env`:
+
+```cmd
+set "HTTP_PORT=8080"
+docker compose -p rsp-lab6-demo up --build -d --wait
+```
+
+Swagger — http://127.0.0.1:8080/docs. Используется тот же проект и том,
+что при демонстрации ЛР 5–6. Изменение схемы PostgreSQL не требуется.
+На чистом клоне сначала выполни `copy .env.example .env` и заполни `DB_PASSWORD`.
+Обычный запуск из папки проекта также работает через `docker compose up --build -d`.
+
+Все модульные проверки ЛР 7 одной командой, без запуска БД и HTTP-сервера:
+
+```cmd
+docker compose -p rsp-lab6-demo run --build --rm unit
+```
+
+Локальный запуск после установки `requirements-dev.txt`:
+`python -P tests/run_unit.py`. Тесты сервисов используют заглушки репозиториев,
+HTTP-тесты — TestClient с подменой сервисов. Для приёмочных проверок на
+отдельной учебной базе можно вызвать `python tests/check_lab7.py`.
+Этот сценарий создаёт демонстрационные данные, часть из которых остаётся в БД.
+
+В этой учебной версии доступ не требует JWT. Пользователь создаётся через
+`POST /api/v1/users`, его UUID явно передаётся как `creatorId` при создании опроса.
+Пароль хешируется scrypt и вместе с хешем исключён из DTO ответов. Вход и проверка
+прав владельца потребуют отдельного механизма аутентификации. Прежние запланированные
+маршруты регистрации, входа, изменения опросов и отправки ответов исключены из
+активной схемы этой ветки, поскольку ещё не реализованы. Снимок схемы и Swagger
+отражают одинаковые работающие операции.

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from collections.abc import Callable, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from typing import Generic, TypeVar
 from uuid import UUID
+from datetime import datetime
 
 from psycopg import Connection, DataError, Error
 from psycopg.errors import CheckViolation, ForeignKeyViolation, NotNullViolation, UniqueViolation
@@ -15,7 +18,7 @@ from internal.domain.errors import (
     ErrNotFound,
     RepositoryError,
 )
-from internal.domain.models import Question, Survey, User
+from internal.domain.models import AnswerOption, Question, Survey, User
 
 MAX_PAGE_SIZE = 100
 Row = TypeVar("Row")
@@ -104,6 +107,13 @@ class PostgresUserRepository(_PostgresRepository[User]):
     def delete(self, user_id: UUID) -> None:
         self._delete("DELETE FROM users WHERE id = %s", user_id)
 
+    def update(self, user_id: UUID, email: str, display_name: str) -> User:
+        return self._one(
+            """UPDATE users SET email = %s, display_name = %s WHERE id = %s
+            RETURNING id, email, password_hash, display_name, created_at""",
+            (email, display_name, user_id),
+        )
+
 
 class PostgresSurveyRepository(_PostgresRepository[Survey]):
     def __init__(self, connection: ConnectionProvider) -> None:
@@ -150,6 +160,20 @@ class PostgresSurveyRepository(_PostgresRepository[Survey]):
     def delete(self, survey_id: UUID) -> None:
         self._delete("DELETE FROM surveys WHERE id = %s", survey_id)
 
+    def get_for_update(self, survey_id: UUID) -> Survey:
+        return self._one(
+            """SELECT id, creator_id, title, description, status, published_at, created_at
+            FROM surveys WHERE id = %s FOR UPDATE""", (survey_id,),
+        )
+
+    def publish(self, survey_id: UUID, published_at: datetime) -> Survey:
+        return self._one(
+            """UPDATE surveys SET status = 'published', published_at = %s
+            WHERE id = %s AND status = 'draft'
+            RETURNING id, creator_id, title, description, status, published_at, created_at""",
+            (published_at, survey_id),
+        )
+
 
 class PostgresQuestionRepository(_PostgresRepository[Question]):
     def __init__(self, connection: ConnectionProvider) -> None:
@@ -188,3 +212,32 @@ class PostgresQuestionRepository(_PostgresRepository[Question]):
 
     def delete(self, question_id: UUID) -> None:
         self._delete("DELETE FROM questions WHERE id = %s", question_id)
+
+    def for_survey(self, survey_id: UUID) -> list[Question]:
+        with self._connect() as connection:
+            with connection.cursor(row_factory=class_row(Question)) as cursor:
+                cursor.execute(
+                    """SELECT id, survey_id, text, type, position, is_required
+                    FROM questions WHERE survey_id = %s ORDER BY position, id""", (survey_id,),
+                )
+                return cursor.fetchall()
+
+
+class PostgresOptionRepository(_PostgresRepository[AnswerOption]):
+    def __init__(self, connection: ConnectionProvider) -> None:
+        super().__init__(connection, AnswerOption)
+
+    def create(self, question_id: UUID, text: str, position: int) -> AnswerOption:
+        return self._one(
+            """INSERT INTO answer_options (question_id, text, position) VALUES (%s, %s, %s)
+            RETURNING id, question_id, text, position""", (question_id, text, position),
+        )
+
+    def for_question(self, question_id: UUID) -> list[AnswerOption]:
+        with self._connect() as connection:
+            with connection.cursor(row_factory=class_row(AnswerOption)) as cursor:
+                cursor.execute(
+                    """SELECT id, question_id, text, position FROM answer_options
+                    WHERE question_id = %s ORDER BY position, id""", (question_id,),
+                )
+                return cursor.fetchall()
